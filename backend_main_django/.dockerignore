@@ -1,0 +1,4 @@
+.env
+Secret*.yml
+Secret*.yaml
+manifests/
