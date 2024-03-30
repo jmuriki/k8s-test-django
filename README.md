@@ -64,6 +64,7 @@ $ docker compose build web
 Аналогичным образом можно удалять библиотеки из зависимостей.
 
 <a name="env-variables"></a>
+
 ## Переменные окружения
 
 Образ с Django считывает настройки из переменных окружения:
@@ -75,3 +76,76 @@ $ docker compose build web
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+## Kubernetes
+
+Должен быть установлен kubectl и запущен кластер Kubernetes (далее представлены команды на примере кластера minikube). Для наглядности можете запустить панель Kubernetes:
+```sh
+minikube dashboard --url
+``` 
+
+### Как подготовить docker-образ сайта
+
+Находясь в папке `backend_main_django` выполните команду:
+```sh
+docker build -t k8s-test_django_app
+```
+
+Затем доставьте образ внутрь кластера и убедитесь, что операция прошла успешно:
+```sh
+minikube image load k8s-test_django_app
+minikube image ls
+```
+
+## Как безопасно доставить переменные в кластер
+
+Закодируйте значение каждой переменной:
+```sh
+echo -n "<value>" | base64
+```
+
+В директории `manifests` создайте файл `Secrets_prod.yaml` и поместите в него переменные с закодированными значениями:
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: k8s-test-django-secrets-prod
+  labels:
+    Lesson: minikube_1
+type: Opaque
+data:
+  # DEBUG: <base64 value>
+  SECRET_KEY: <base64 value>
+  DATABASE_URL: <base64 value>
+  ALLOWED_HOSTS: <base64 value>
+```
+
+Передайте Secrets_prod.yaml внутрь кластера следующей командой:
+```sh
+kubectl apply -f Secrets_prod.yaml
+```
+
+### Как запустить сайт c помощью `deployment`
+```sh
+kubectl apply -f k8s-test-django-deployment.yaml
+```
+
+### Как обеспечить доступ к сайту
+
+Запустите сервис LoadBalancer:
+```sh
+kubectl apply -f LoadBalancer.yaml
+```
+
+Откройте доступ к сервису извне:
+```sh
+minikube service k8s-test-loadbalancer-service --url
+```
+
+## Цели проекта
+
+Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org).
+
+Где используется репозиторий:
+
+- Первый урок [учебного курса Kubernetes](https://dvmn.org/modules/k8s/)
