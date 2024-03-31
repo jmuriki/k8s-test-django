@@ -4,6 +4,8 @@ metadata:
   name: k8s-test-django-deployment
   labels:
     Lesson: minikube_1
+    env: prod
+    owner: jmuriki
 spec:
   replicas: 1
   selector:

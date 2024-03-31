@@ -4,6 +4,7 @@ metadata:
   name: k8s-test-loadbalancer-service
   labels:
     Lesson: minikube_1
+    owner: jmuriki
 spec:
   type: LoadBalancer
   selector:
