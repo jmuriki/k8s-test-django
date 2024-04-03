@@ -37,4 +37,9 @@ spec:
             secretKeyRef:
               name: k8s-test-django-secrets-prod
               key: DATABASE_URL
+        - name: ALLOWED_HOSTS
+          valueFrom:
+            secretKeyRef:
+              name: k8s-test-django-secrets-prod
+              key: ALLOWED_HOSTS
         imagePullPolicy: IfNotPresent

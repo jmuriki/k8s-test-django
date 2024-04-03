@@ -120,7 +120,7 @@ data:
   ALLOWED_HOSTS: <base64 value>
 ```
 
-Передайте Secrets_prod.yaml внутрь кластера следующей командой:
+Передайте `Secrets_prod.yaml` внутрь кластера следующей командой:
 ```sh
 kubectl apply -f Secrets_prod.yaml
 ```
@@ -130,7 +130,7 @@ kubectl apply -f Secrets_prod.yaml
 kubectl apply -f k8s-test-django-deployment.yaml
 ```
 
-### Как обеспечить доступ к сайту
+### Как обеспечить доступ к сайту c помошью LoadBalancer
 
 Запустите сервис LoadBalancer:
 ```sh
@@ -140,6 +140,28 @@ kubectl apply -f LoadBalancer.yaml
 Откройте доступ к сервису извне:
 ```sh
 minikube service k8s-test-loadbalancer-service --url
+```
+
+### Как обеспечить доступ к сайту c помошью ClusterIP и Ingress
+
+Включите minikube Ingress:
+```sh
+minikube addons enable ingress
+```
+
+Запустите сервис ClusterIP:
+```sh
+kubectl apply -f ClusterIP.yaml
+```
+
+Запустите сервис Ingress:
+```sh
+kubectl apply -f Ingress.yaml
+```
+
+На локальной машине создайте туннель:
+```sh
+minikube tunnel
 ```
 
 ## Цели проекта
