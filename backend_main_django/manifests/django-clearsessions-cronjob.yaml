@@ -7,9 +7,11 @@ metadata:
     env: prod
     owner: jmuriki
 spec:
-  schedule: "0 0 * * * " # Расписание: каждый день в 00.00
+  schedule: "* * * * * "
+  startingDeadlineSeconds: 10
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: 1
       template:
         metadata:
           labels:
