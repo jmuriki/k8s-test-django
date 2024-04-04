@@ -97,14 +97,14 @@ minikube image load k8s-test_django_app
 minikube image ls
 ```
 
-## Как безопасно доставить переменные в кластер
+### Как безопасно доставить переменные в кластер
 
 Закодируйте значение каждой переменной:
 ```sh
 echo -n "<value>" | base64
 ```
 
-В директории `manifests` создайте файл `Secrets_prod.yaml` и поместите в него переменные с закодированными значениями:
+В директории `manifests` создайте файл `Secrets.yaml` и поместите в него переменные с закодированными значениями:
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -120,9 +120,9 @@ data:
   ALLOWED_HOSTS: <base64 value>
 ```
 
-Передайте `Secrets_prod.yaml` внутрь кластера следующей командой:
+Передайте `Secrets.yaml` внутрь кластера следующей командой:
 ```sh
-kubectl apply -f Secrets_prod.yaml
+kubectl apply -f Secrets.yaml
 ```
 
 ### Как запустить сайт c помощью `deployment`
@@ -132,7 +132,7 @@ kubectl apply -f k8s-test-django-deployment.yaml
 
 ### Как обеспечить доступ к сайту c помошью LoadBalancer
 
-Запустите сервис LoadBalancer:
+Запустите сервис `LoadBalancer`:
 ```sh
 kubectl apply -f LoadBalancer.yaml
 ```
@@ -144,17 +144,17 @@ minikube service k8s-test-loadbalancer-service --url
 
 ### Как обеспечить доступ к сайту c помошью ClusterIP и Ingress
 
-Включите minikube Ingress:
+Включите minikube `Ingress`:
 ```sh
 minikube addons enable ingress
 ```
 
-Запустите сервис ClusterIP:
+Запустите сервис `ClusterIP`:
 ```sh
 kubectl apply -f ClusterIP.yaml
 ```
 
-Запустите сервис Ingress:
+Запустите сервис `Ingress`:
 ```sh
 kubectl apply -f Ingress.yaml
 ```
@@ -163,6 +163,28 @@ kubectl apply -f Ingress.yaml
 ```sh
 minikube tunnel
 ```
+
+### Как настроить автоматическое удаление устаревших сессий Django
+
+Запустите сервис `CronJob`:
+```sh
+kubectl create -f django-clearsessions-cronjob.yaml
+```
+
+Сервис `cronjob` настроен на срабатывание раз в сутки. Убедиться в том, что он работает, можно c помощью следующих команд:
+```sh
+kubectl get job
+kubectl get job --watch
+kubectl get cronjob
+kubectl get cronjob --watch
+```
+
+Чтобы job сработал принудительно вне расписания, используйте команду:
+```sh
+kubectl create job --from=cronjob/k8s-test-django-clearsessions-cronjob django-clearsessions-once
+```
+
+Добавьте параметр `-n <namespace>` при необходимости.
 
 ## Цели проекта
 
