@@ -126,13 +126,15 @@ kubectl apply -f Secrets.yaml
 ```
 
 ### Как запустить сайт c помощью `deployment`
+
+Находясь в директории `manifests`, выполните команду:
 ```sh
 kubectl apply -f k8s-test-django-deployment.yaml
 ```
 
 ### Как обеспечить доступ к сайту c помошью LoadBalancer
 
-Запустите сервис `LoadBalancer`:
+Находясь в директории `manifests`, запустите сервис `LoadBalancer`:
 ```sh
 kubectl apply -f LoadBalancer.yaml
 ```
@@ -149,12 +151,12 @@ minikube service k8s-test-loadbalancer-service --url
 minikube addons enable ingress
 ```
 
-Запустите сервис `ClusterIP`:
+Находясь в директории `manifests`, запустите сервис `ClusterIP`:
 ```sh
 kubectl apply -f ClusterIP.yaml
 ```
 
-Запустите сервис `Ingress`:
+И затем запустите сервис `Ingress`:
 ```sh
 kubectl apply -f Ingress.yaml
 ```
@@ -166,7 +168,7 @@ minikube tunnel
 
 ### Как настроить автоматическое удаление устаревших сессий Django
 
-Запустите сервис `CronJob`:
+Находясь в директории `manifests`, запустите сервис `CronJob`:
 ```sh
 kubectl create -f django-clearsessions-cronjob.yaml
 ```
@@ -179,12 +181,19 @@ kubectl get cronjob
 kubectl get cronjob --watch
 ```
 
-Чтобы job сработал принудительно вне расписания, используйте команду:
+Чтобы `job` сработал принудительно, вне расписания, используйте команду:
 ```sh
 kubectl create job --from=cronjob/k8s-test-django-clearsessions-cronjob django-clearsessions-once
 ```
 
 Добавьте параметр `-n <namespace>` при необходимости.
+
+### Как применить миграции
+
+Находясь в директории `manifests`, запустите команду:
+```sh
+kubectl apply -f django-migrate.yaml
+```
 
 ## Цели проекта
 

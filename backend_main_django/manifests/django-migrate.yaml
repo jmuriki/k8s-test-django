@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k8s-test-django-migrate
+  labels:
+    Lesson: minikube_1
+    env: prod
+    owner: jmuriki
+spec:
+  backoffLimit: 10 # Указывает, что попыток перезапуска должно быть не более 10
+  activeDeadlineSeconds: 60 # Указывает, что макс отведённое время на попытки выполнение равняется 60 сек
+  ttlSecondsAfterFinished: 60 # Удаляет Job через 60 сек после успешного завершения
+  template:
+    metadata:
+      labels:
+        app: k8s-test-django-migrate
+    spec:
+      containers:
+        - name: k8s-test-django-container
+          image: k8s-test_django_app
+          command:
+            - python
+            - manage.py
+            - migrate
+            - --noinput
+          envFrom:
+            - secretRef:
+                name: k8s-test-django-secrets-prod
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Never
