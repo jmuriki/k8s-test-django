@@ -75,11 +75,17 @@ $ docker compose build web
 
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
-`DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+`DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema). Если будете подключать БД PostgreSQL, находящуюся в том же кластере, что и Django Site, укажите вместо ip адреса `postgresql-k8s-test` или то название, которое выберете при разворачивании PostgreSQL.
 
 ## Kubernetes
 
-Должен быть установлен kubectl и запущен кластер Kubernetes (далее представлены команды на примере кластера minikube). Для наглядности можете запустить панель Kubernetes:
+Должен быть установлен kubectl и запущен кластер Kubernetes (далее представлены команды на примере кластера minikube и macOS).
+
+```sh
+minikube start --driver=docker
+```
+
+Для наглядности можете запустить панель Kubernetes:
 ```sh
 minikube dashboard --url
 ``` 
@@ -95,6 +101,34 @@ docker build -t k8s-test_django_app
 ```sh
 minikube image load k8s-test_django_app
 minikube image ls
+```
+
+### Как установить контейнеризированную PostgreSQL
+
+Установите `PostgreSQL` с помощью `Helm` и `Bitnami`:
+```sh
+brew install helm
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm install postgresql-k8s-test bitnami/postgresql
+```
+
+### Как подключиться к PostgreSQL и создать новую БД
+
+Экспортируйте пароль `postgres` и используйте его для составления переменной `DATABASE_URL`:
+```sh
+export POSTGRES_PASSWORD=$(kubectl get secret --namespace default postgresql-k8s-test -o jsonpath="{.data.postgres-password}" | base64 -d) && echo $POSTGRES_PASSWORD
+```
+
+Подключитесь к консоли PostgreSQL:
+```sh
+kubectl run postgresql-k8s-test-client --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:16.2.0-debian-12-r14 --env="PGPASSWORD=$POSTGRES_PASSWORD" --command -- psql --host postgresql-k8s-test -U postgres -d postgres -p 5432
+```
+
+Создайте новую БД:
+```psql
+CREATE DATABASE k8s-test-db;
+\q
 ```
 
 ### Как безопасно доставить переменные в кластер
@@ -166,6 +200,35 @@ kubectl apply -f Ingress.yaml
 minikube tunnel
 ```
 
+### Как создать superuser
+
+Войдите в кластер:
+```sh
+minikube ssh
+````
+
+Выведите список контейнеров django:
+```sh
+docker ps | grep django-container
+```
+
+Зайдите в контейнер с сайтом:
+```sh
+docker exec -it <django container id> bash
+```
+
+Создайте superuser:
+```sh
+python manage.py createsuperuser
+```
+
+### Как применить миграции
+
+Находясь в директории `manifests`, запустите команду:
+```sh
+kubectl apply -f django-migrate.yaml
+```
+
 ### Как настроить автоматическое удаление устаревших сессий Django
 
 Находясь в директории `manifests`, запустите сервис `CronJob`:
@@ -187,13 +250,6 @@ kubectl create job --from=cronjob/k8s-test-django-clearsessions-cronjob django-c
 ```
 
 Добавьте параметр `-n <namespace>` при необходимости.
-
-### Как применить миграции
-
-Находясь в директории `manifests`, запустите команду:
-```sh
-kubectl apply -f django-migrate.yaml
-```
 
 ## Цели проекта
 
