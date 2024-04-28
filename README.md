@@ -109,7 +109,7 @@ export COMMIT_HASH=$(git rev-parse k8s-Lesson2)
 
 Соберите образ, используя хэш последнего коммита в качестве тега:
 ```sh
-docker build -t <DockerHub_username>/k8s-test_django_app:$COMMIT_HASH
+docker build -t <DockerHub_username>/k8s-test_django_app:$COMMIT_HASH .
 ```
 
 Затем загрузить образ в DockerHub:
