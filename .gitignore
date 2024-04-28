@@ -161,5 +161,5 @@ cython_debug/
 
 # This project
 .DS_Store
-Secrets*.yml
-Secrets*.yaml
+Secret*.yml
+Secret*.yaml
