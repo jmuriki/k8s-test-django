@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-test-pod
+  namespace: edu-focused-lamarr
+  labels:
+    Lesson: kubernetes_2
+    branch: k8s-Lesson2
+    owner: jmuriki
+    env: dev
+spec:
+  containers:
+    - name: nginx-test-container
+      image: nginx:1.14.2
+      ports:
+        - containerPort: 80

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-test-deployment
+  namespace: edu-focused-lamarr
+  labels:
+    Lesson: kubernetes_2
+    branch: k8s-Lesson2
+    owner: jmuriki
+    env: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-test-pod
+  template:
+    metadata:
+      labels:
+        app: django-test-pod
+    spec:
+      containers:
+        - name: django-test-container
+          image: jmuriki/k8s-test_django_app
+          ports:
+            - containerPort: 80
+          env:
+            - name: PG_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: host
+            - name: PG_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: port
+            - name: PG_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: username
+            - name: PG_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: name
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+            - name: DEBUG
+              valueFrom:
+                secretKeyRef:
+                  name: django-secrets-dev
+                  key: DEBUG
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: django-secrets-dev
+                  key: SECRET_KEY
+            - name: ALLOWED_HOSTS
+              valueFrom:
+                secretKeyRef:
+                  name: django-secrets-dev
+                  key: ALLOWED_HOSTS
+            - name: DATABASE_URL
+              value: postgres://$(PG_USERNAME):$(PGPASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DB_NAME)
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: secret-ssl-volume
+              mountPath: /root/.postgresql/
+      volumes:
+        - name: secret-ssl-volume
+          secret:
+            secretName: secret-ssl-certificate
