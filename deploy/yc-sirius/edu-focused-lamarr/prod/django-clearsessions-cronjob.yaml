@@ -1,0 +1,82 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: django-clearsessions-cronjob
+  namespace: edu-focused-lamarr
+  labels:
+    Lesson: kubernetes_2
+    branch: k8s-Lesson2
+    owner: jmuriki
+    env: prod
+spec:
+  schedule: "0 0 * * * "
+  startingDeadlineSeconds: 10
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 1
+      template:
+        metadata:
+          labels:
+            app: django-clearsessions-cronjob
+        spec:
+          containers:
+            - name: django-container
+              image: jmuriki/k8s-test_django_app
+              command:
+                - python
+                - manage.py
+                - migrate
+                - --noinput
+              env:
+                - name: PG_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres
+                      key: host
+                - name: PG_PORT
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres
+                      key: port
+                - name: PG_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres
+                      key: username
+                - name: PG_DB_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres
+                      key: name
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres
+                      key: password
+                - name: DEBUG
+                  valueFrom:
+                    secretKeyRef:
+                      name: django-secrets-dev
+                      key: DEBUG
+                - name: SECRET_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: django-secrets-dev
+                      key: SECRET_KEY
+                - name: ALLOWED_HOSTS
+                  valueFrom:
+                    secretKeyRef:
+                      name: django-secrets-dev
+                      key: ALLOWED_HOSTS
+                - name: DATABASE_URL
+                  value: postgres://$(PG_USERNAME):$(PGPASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DB_NAME)
+              ports:
+                - containerPort: 80
+              volumeMounts:
+                - name: secret-ssl-volume
+                  mountPath: /root/.postgresql/
+          volumes:
+            - name: secret-ssl-volume
+              secret:
+                secretName: secret-ssl-certificate
+          restartPolicy: OnFailure
