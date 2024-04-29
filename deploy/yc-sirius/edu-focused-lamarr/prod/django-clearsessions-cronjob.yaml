@@ -56,17 +56,17 @@ spec:
                 - name: DEBUG
                   valueFrom:
                     secretKeyRef:
-                      name: django-secrets-dev
+                      name: django-secrets-prod
                       key: DEBUG
                 - name: SECRET_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: django-secrets-dev
+                      name: django-secrets-prod
                       key: SECRET_KEY
                 - name: ALLOWED_HOSTS
                   valueFrom:
                     secretKeyRef:
-                      name: django-secrets-dev
+                      name: django-secrets-prod
                       key: ALLOWED_HOSTS
                 - name: DATABASE_URL
                   value: postgres://$(PG_USERNAME):$(PGPASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DB_NAME)
